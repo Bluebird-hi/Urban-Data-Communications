@@ -6,10 +6,16 @@ library(rgeoboundaries)
 library(climateR)
 library(biscale)
 library(cowplot)
+library(tidycensus)
+library(gridGraphics)
 
+census_api_key("e62580f74ef222beadd9dd2fbaf48ff130b31c4a", overwrite = TRUE)
+acs_variable_list.2022 <- load_variables(2022, #year
+                                         "acs5", #five year ACS estimates
+                                         cache = TRUE)
 # Retrieve Asian population data
 tracts22 <- get_acs(geography = "tract",
-                    variables = c("B01001D_001E"), 
+                    variables = c("B01001D_001E"), # B01001D_001: Asian population
                     year=2022, 
                     state=42, 
                     county=101, 
@@ -19,32 +25,37 @@ tracts22 <- get_acs(geography = "tract",
 
 # get philly boundary
 philly_bound <- tracts22 %>% st_union() 
+# log
+tracts22 <- tracts22 %>%
+  mutate(logE = log(B01001D_001E+1),
+         logM = log(B01001D_001M+1))
 # Classify data into bivariate categories using 'biscale'
-data <- bi_class(tracts22, x = B01001D_001E, y = B01001D_001M, style = "quantile", dim = 4)
+# data <- bi_class(tracts22, x = B01001D_001E, y = B01001D_001M, style = "quantile", dim = 4)
+# data <- bi_class(tracts22, x = logE, y = logM, style = "equal", dim = 4)
+data <- bi_class(tracts22, x = logE, y = logM, style = "fisher", dim = 4)
+# data <- bi_class(tracts22, x = logE, y = logM, style = "quantile", dim = 4)
 
-# selectCentroids.22 <-
-#   st_centroid(data)
-# 
-# coordinates <- st_coordinates(selectCentroids.22)
-# 
-# selectCentroids.22$x <- coordinates[,1]
-# selectCentroids.22$y <- coordinates[,2]
-# 
-# selectCentroids.22 <- selectCentroids.22 %>% st_drop_geometry()
+hist(tracts22$logM)
+ggplot(data)+
+  geom_point(aes(x = logE, y = logM))
 
 # Define the color palette for the bivariate map
-pallet <- "DkViolet2"
+# pallet2 <- "DkViolet2"
+# the bi_classes is not complete, it just shows 8 classes! so the remaining colors are useless but to match ggplot
+pallet <- c('#A1ADB7', '#00429d', '#73a2c6', '#a5d5d8', '#ffbcaf', '#f4777f', '#cf3759', '#93003a',
+            '#00429d', '#4771b2', '#73a2c6', '#a5d5d8', '#ffbcaf', '#f4777f', '#cf3759', '#93003a')
+
 
 library(ggtext)
 library(glue)
 
 # Define colors for the annotations
-blue_color <- "#4367b0"  # Blue for low temperature and high precipitation
-red_color <- "#ba0651"  # Orange for high temperature and low precipitation
-gray_color <- "lightgray"  # Gray for low temperature and low precipitation
-purple_color <- "#5b0f69"  # Green for high temperature and high precipitation
+LH_color <-'#a5d5d8'  # Blue for low temperature and high precipitation
+HH_color <- '#93003a'  # Orange for high temperature and low precipitation
+LL_color <- '#A1ADB7'  # Gray for low temperature and low precipitation
+HL_color <- '#a5d5d8'  # Green for high temperature and high precipitation
 
-title_text <- glue("<span style='color:{red_color};'>**Estimate**</span> and <span style='color:{blue_color};'>**Margin of Error**</span> of Asian Population")
+title_text <- glue("<span style='color:{HH_color};'>**Estimate**</span> and <span style='color:{LH_color};'>**Margin of Error**</span> of Asian Population")
 
 annotation_text_LL <- glue("Low Estimate \n Low Margin of Error")
 annotation_text_LH <- glue("Low Estimate \n High Margin of Error")
@@ -68,25 +79,26 @@ map <- ggplot() +
         plot.caption = element_text(size = 10, face = "bold", hjust = 0)) +
   
   # Add the colored annotations with leader lines
-  annotate("text", x = -7.5, y = 60, label = annotation_text_LH, color = blue_color, size = 4, fontface = "bold") +
-  annotate("text", x =  2660586, y = 202204.6, label = annotation_text_LL, color = gray_color, size = 4, fontface = "bold") +
-  annotate("text", x = 4, y = 49, label = annotation_text_HL, color = orange_color, size = 4, fontface = "bold") +
-  annotate("text", x = -10, y = 51, label = annotation_text_HH, color = green_color, size = 4, fontface = "bold") +
+  annotate("text", x = -7.5, y = 60, label = annotation_text_LH, color = LH_color, size = 4, fontface = "bold") +
+  annotate("text", x =  2660586, y = 202204.6, label = annotation_text_LL, color = LL_color, size = 4, fontface = "bold") +
+  annotate("text", x = 4, y = 49, label = annotation_text_HL, color = HH_color, size = 4, fontface = "bold") +
+  annotate("text", x = -10, y = 51, label = annotation_text_HH, color = HL_color, size = 4, fontface = "bold") +
   
   # Add leader lines to the annotations
-  geom_segment(aes(x = -5.5, xend = -7.5, y = 57.5, yend = 59.25), color = blue_color, size = 0.8) +
-  geom_segment(aes(x = -2.25, xend = 1.5, y = 57.65, yend = 57.5), color = gray_color, size = 0.8) +
-  geom_segment(aes(x = 1, xend = 4, y = 51, yend = 49.75), color = orange_color, size = 0.8) +
-  geom_segment(aes(x = -5, xend = -10, y = 50, yend = 50.25), color = green_color, size = 0.8) +
+  geom_segment(aes(x = -5.5, xend = -7.5, y = 57.5, yend = 59.25), color = LH_color, size = 0.8) +
+  geom_segment(aes(x = -2.25, xend = 1.5, y = 57.65, yend = 57.5), color = LL_color, size = 0.8) +
+  geom_segment(aes(x = 1, xend = 4, y = 51, yend = 49.75), color = HH_color, size = 0.8) +
+  geom_segment(aes(x = -5, xend = -10, y = 50, yend = 50.25), color = HL_color, size = 0.8) +
   
   
   # Add point lines to the end of the line
-  geom_point(aes(x = -7.5, y = 59.25), color = blue_color, size = 2) +
-  geom_point(aes(x = 1.5, y = 57.5), color = gray_color, size = 2) +
-  geom_point(aes(x = 4, y = 49.75), color = orange_color, size = 3) +
-  geom_point(aes(x = -10, y = 50.25), color = green_color, size = 3)
+  geom_point(aes(x = -7.5, y = 59.25), color = LH_color, size = 2) +
+  geom_point(aes(x = 1.5, y = 57.5), color = LL_color, size = 2) +
+  geom_point(aes(x = 4, y = 49.75), color = HH_color, size = 3) +
+  geom_point(aes(x = -10, y = 50.25), color = HL_color, size = 3)
 
-legend <- bi_legend(pal = pallet,   
+# not work now TT
+legend <- bi_legend(pal = pallet2,   
                     flip_axes = FALSE,
                     rotate_pal = FALSE,
                     dim = 4,
