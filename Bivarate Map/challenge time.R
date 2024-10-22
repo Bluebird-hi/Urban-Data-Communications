@@ -2,8 +2,8 @@
 library(tidyverse)
 library(sf)
 library(terra)
-library(rgeoboundaries)
-library(climateR)
+# library(rgeoboundaries)
+# library(climateR)
 library(biscale)
 library(cowplot)
 library(tidycensus)
@@ -73,9 +73,9 @@ tracts22 <- tracts22_orig %>%
 data <- bi_class(tracts22, x = logE, y = logM, style = "fisher", dim = 4)
 # data <- bi_class(tracts22, x = logE, y = logM, style = "quantile", dim = 4)
 
-hist(tracts22$logM)
-ggplot(data) +
-  geom_point(aes(x = logE, y = logM))
+# hist(tracts22$logM)
+# ggplot(data) +
+#   geom_point(aes(x = logE, y = logM))
 
 # Define the color palette for the bivariate map
 # palette2 <- "DkViolet2"
@@ -115,6 +115,15 @@ LL_y <- 39.7
 HL_x <- -74.9
 HL_y <- 40.25
 
+LH_text_x <- LH_x - 0.2
+LH_text_y <- LH_y + 0.1
+HH_text_x <- HH_x - 0.1
+HH_text_y <- HH_y + 0.15
+LL_text_x <- LL_x
+LL_text_y <- LL_y - 0.2
+HL_text_x <- HL_x + 0.2
+HL_text_y <- HL_y + 0.1
+
 # Create the map with colored subtitle, annotations, and leader lines
 map <- ggplot() +
   # theme_void(base_size = 14) +
@@ -134,16 +143,16 @@ map <- ggplot() +
         plot.caption = element_text(size = 10, face = "bold", hjust = 0)) +
   
   # Add the colored annotations with leader lines
-  annotate("text", x = -7.5, y = 60, label = annotation_text_LH, color = LH_color, size = 4, fontface = "bold") +
-  annotate("text", x =  2660586, y = 202204.6, label = annotation_text_LL, color = LL_color, size = 4, fontface = "bold") +
-  annotate("text", x = 4, y = 49, label = annotation_text_HL, color = HH_color, size = 4, fontface = "bold") +
-  annotate("text", x = -10, y = 51, label = annotation_text_HH, color = HL_color, size = 4, fontface = "bold") +
-
+  annotate("text", x = LH_text_x, y = LH_text_y, label = annotation_text_LH, color = LH_color, size = 4, fontface = "bold") +
+  annotate("text", x = LL_text_x, y = LL_text_y, label = annotation_text_LL, color = LL_color, size = 4, fontface = "bold") +
+  annotate("text", x = HH_text_x, y = HH_text_y, label = annotation_text_HL, color = HH_color, size = 4, fontface = "bold") +
+  annotate("text", x = HL_text_x, y = HL_text_y, label = annotation_text_HH, color = HL_color, size = 4, fontface = "bold") +
+  
   # Add leader lines to the annotations
-  geom_segment(aes(x = -5.5, xend = -7.5, y = 57.5, yend = 59.25), color = LH_color, size = 0.8) +
-  geom_segment(aes(x = -2.25, xend = 1.5, y = 57.65, yend = 57.5), color = LL_color, size = 0.8) +
-  geom_segment(aes(x = 1, xend = 4, y = 51, yend = 49.75), color = HH_color, size = 0.8) +
-  geom_segment(aes(x = -5, xend = -10, y = 50, yend = 50.25), color = HL_color, size = 0.8) +
+  geom_segment(aes(x = LH_x, xend = LH_x + .25, y = LH_y, yend = LH_y + .25), color = LH_color, size = 0.8) +
+  geom_segment(aes(x = LL_x, xend = LL_x + .25, y = LL_y, yend = LL_y + .25), color = LL_color, size = 0.8) +
+  geom_segment(aes(x = HH_x, xend = HH_x + .25, y = HH_y, yend = HH_y + .25), color = HH_color, size = 0.8) +
+  geom_segment(aes(x = HL_x, xend = HL_x + .25, y = HL_y, yend = HL_y + .25), color = HL_color, size = 0.8) +
   
   
   # Add point lines to the end of the line
