@@ -126,9 +126,9 @@ HL_text_y <- HL_y + 0.1
 
 # Create the map with colored subtitle, annotations, and leader lines
 map <- ggplot() +
-  # theme_void(base_size = 14) +
-  xlim(-75.75, -74.3) +  # Set x-axis limits for the map (longitude range)
-  ylim(39.35, 40.7) +  # Set y-axis limits for the map (latitude range)
+  theme_void(base_size = 14) +
+  xlim(-75.75, -74.38) +  # Set x-axis limits for the map (longitude range)
+  ylim(39.4, 40.65) +  # Set y-axis limits for the map (latitude range)
   geom_sf(data = data, aes(fill = bi_class), color = NA, linewidth = 0.1, show.legend = FALSE) +
   geom_sf(data = philly_bound, fill = "transparent", color = "yellow", size = 10) +
   geom_sf(data = whole_bound, fill = "transparent", color = "black") +
@@ -143,23 +143,23 @@ map <- ggplot() +
         plot.caption = element_text(size = 10, face = "bold", hjust = 0)) +
   
   # Add the colored annotations with leader lines
-  annotate("text", x = LH_text_x, y = LH_text_y, label = annotation_text_LH, color = LH_color, size = 4, fontface = "bold") +
-  annotate("text", x = LL_text_x, y = LL_text_y, label = annotation_text_LL, color = LL_color, size = 4, fontface = "bold") +
-  annotate("text", x = HH_text_x, y = HH_text_y, label = annotation_text_HL, color = HH_color, size = 4, fontface = "bold") +
-  annotate("text", x = HL_text_x, y = HL_text_y, label = annotation_text_HH, color = HL_color, size = 4, fontface = "bold") +
+  annotate("text", x = LH_text_x, y = LH_text_y, label = annotation_text_LH, color = LH_color, size = 1.85, fontface = "bold") +
+  annotate("text", x = LL_text_x, y = LL_text_y, label = annotation_text_LL, color = LL_color, size = 1.85, fontface = "bold") +
+  annotate("text", x = HH_text_x, y = HH_text_y, label = annotation_text_HL, color = HH_color, size = 1.85, fontface = "bold") +
+  annotate("text", x = HL_text_x, y = HL_text_y, label = annotation_text_HH, color = HL_color, size = 1.85, fontface = "bold") +
   
   # Add leader lines to the annotations
-  geom_segment(aes(x = LH_x, xend = LH_x + .25, y = LH_y, yend = LH_y + .25), color = LH_color, size = 0.8) +
-  geom_segment(aes(x = LL_x, xend = LL_x + .25, y = LL_y, yend = LL_y + .25), color = LL_color, size = 0.8) +
-  geom_segment(aes(x = HH_x, xend = HH_x + .25, y = HH_y, yend = HH_y + .25), color = HH_color, size = 0.8) +
-  geom_segment(aes(x = HL_x, xend = HL_x + .25, y = HL_y, yend = HL_y + .25), color = HL_color, size = 0.8) +
+  geom_segment(aes(x = LH_x, xend = LH_text_x, y = LH_y, yend = LH_text_y - 0.05), color = LH_color, size = 0.65) +
+  geom_segment(aes(x = LL_x, xend = LL_text_x, y = LL_y, yend = LL_text_y + 0.05), color = LL_color, size = 0.65) +
+  geom_segment(aes(x = HH_x, xend = HH_text_x, y = HH_y, yend = HH_text_y - 0.05), color = HH_color, size = 0.65) +
+  geom_segment(aes(x = HL_x, xend = HL_text_x, y = HL_y, yend = HL_text_y - 0.05), color = HL_color, size = 0.65) +
   
   
   # Add point lines to the end of the line
-  geom_point(aes(x = LH_x, y = LH_y), color = LH_color, size = 2) +
-  geom_point(aes(x = LL_x, y = LL_y), color = LL_color, size = 2) +
-  geom_point(aes(x = HH_x, y = HH_y), color = HH_color, size = 2) +
-  geom_point(aes(x = HL_x, y = HL_y), color = HL_color, size = 2)
+  geom_point(aes(x = LH_text_x, y = LH_text_y - 0.05), color = LH_color, size = 1) +
+  geom_point(aes(x = LL_text_x, y = LL_text_y + 0.05), color = LL_color, size = 1) +
+  geom_point(aes(x = HH_text_x, y = HH_text_y - 0.05), color = HH_color, size = 1) +
+  geom_point(aes(x = HL_text_x, y = HL_text_y - 0.05), color = HL_color, size = 1)
 
 # legend
 legend <- bi_legend(pal = "DkBlue2",   
